@@ -3,3 +3,4 @@ venv
 .replit
 replit.nix
 *temp*
+__pycache__
