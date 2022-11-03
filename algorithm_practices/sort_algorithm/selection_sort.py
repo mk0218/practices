@@ -1,4 +1,3 @@
-import time
 import sys
 from typing import List
 
@@ -15,10 +14,3 @@ def selection_sort(src: List[int]):
         src[cursor], src[minidx] = src[minidx], src[cursor]
         cursor += 1
     return src
-
-
-start_time = time.time()
-selection_sort(nums)
-end_time = time.time()
-print("result: ", nums)
-print("time: ", end_time - start_time)

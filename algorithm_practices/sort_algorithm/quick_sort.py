@@ -1,4 +1,3 @@
-import time
 import sys
 from typing import List
 
@@ -29,11 +28,3 @@ def quick_sort(src: List[int]) -> List[int]:
     left = quick_sort(left)
     right = quick_sort(right)
     return left + center + right
-
-
-start_time = time.time()
-result = quick_sort(nums)
-end_time = time.time()
-print("result: ", result)
-print("time: ", end_time - start_time)
-print("called: ", func_called)
