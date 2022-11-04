@@ -1,4 +1,3 @@
-import time
 import sys
 from typing import List
 
@@ -24,10 +23,3 @@ def merge_sort_1(src: List[int]) -> List[int]:
     chunk1 = merge_sort_1(src[:len(src) // 2])
     chunk2 = merge_sort_1(src[len(src) // 2:])
     return merge(chunk1, chunk2)
-
-
-start_time = time.time()
-result = merge_sort_1(nums)
-end_time = time.time()
-print("result: ", result)
-print("time: ", end_time - start_time)

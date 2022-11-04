@@ -4,3 +4,4 @@ venv
 replit.nix
 *temp*
 __pycache__
+*.pytest_cache/*
