@@ -1,8 +1,7 @@
-'''
+"""
 BAEKJOON 13460번 문제
 https://www.acmicpc.net/problem/13460
-이게외않돼
-'''
+"""
 import sys
 from enum import Enum
 from typing import Generator, Iterator, Tuple
@@ -35,7 +34,6 @@ class Dir(Enum):
 
 
 class Matrix:
-
     def __init__(self, it: Generator[Iterator[str], None, None]):
         self._m = [[c for c in subit] for subit in it]
         self._w = len(self._m[0])
@@ -52,11 +50,11 @@ class Matrix:
 
 
 class MarblesBoard(Matrix):
-    RED = 'R'
-    BLUE = 'B'
-    HOLE = 'O'
-    WALL = '#'
-    EMPTY = '.'
+    RED = "R"
+    BLUE = "B"
+    HOLE = "O"
+    WALL = "#"
+    EMPTY = "."
 
     def __init__(self, board: Generator[Iterator[str], None, None]):
         super().__init__(board)
@@ -71,10 +69,12 @@ class MarblesBoard(Matrix):
                         blue = (j, i)
                     if not red and (c == self.RED):
                         red = (j, i)
-                    if (hole and blue and red):
+                    if hole and blue and red:
                         return (hole, blue, red)
-            raise Exception(f'hole: {hole}, blue: {blue}, red: {red}\n'
-                            f'matrix:\n{self._m.__str__()}')
+            raise Exception(
+                f"hole: {hole}, blue: {blue}, red: {red}\n"
+                f"matrix:\n{self._m.__str__()}"
+            )
 
         self._xy_hole, self._xy_blue, self._xy_red = find()
         self._move_cnt = 0
@@ -92,26 +92,27 @@ class MarblesBoard(Matrix):
             self.set(*self._xy_red, self.RED)
 
     def is_valid_position(self, x, y):
-        return ((x >= self._leftmost and x <= self._rightmost)
-                and (y >= self._top and y <= self._bottom)
-                and self.get(x, y) != self.WALL)
+        return (
+            (x >= self._leftmost and x <= self._rightmost)
+            and (y >= self._top and y <= self._bottom)
+            and self.get(x, y) != self.WALL
+        )
 
-    def move_simulate(self,
-                      dir: Dir) -> Generator[Tuple[int, int], None, None]:
-        '''
+    def move_simulate(self, dir: Dir) -> Generator[Tuple[int, int], None, None]:
+        """
         현재상태에서 dir 방향으로 구슬들을 움직이면 어떻게 될지 simulation하는 함수
         output: ((파란 구슬 위치), (빨간 구슬 위치))의 Generator
         exception: RedMarbleExit(성공) 또는 BlueMarbleExit(실패)
-        '''
+        """
         xo, yo = self._xy_hole
         dx, dy = dir.value
         marble = {  # [x, y, stuck, exit]
             self.BLUE: [*self._xy_blue, False, False],
-            self.RED: [*self._xy_red, False, False]
+            self.RED: [*self._xy_red, False, False],
         }
 
         def both_stuck():
-            return (marble[self.BLUE][2] and marble[self.RED][2])
+            return marble[self.BLUE][2] and marble[self.RED][2]
 
         def blue_exit():
             return marble[self.BLUE][3]
@@ -136,7 +137,7 @@ class MarblesBoard(Matrix):
             # 두 구슬이 같은 칸에 있게 되면 나중에 온 구슬을 원래 위치로 되돌린다.
             # 또한 이런경우에는 두 구슬 모두 더이상 움직일 수 없으므로 stuck 처리.
             if not (blue_exit() or red_exit()):
-                if (marble[self.BLUE][:2] == marble[self.RED][:2]):
+                if marble[self.BLUE][:2] == marble[self.RED][:2]:
                     for key, [x, y, stuck, _] in marble.items():
                         if not stuck:
                             marble[key][:2] = x - dx, y - dy
@@ -153,7 +154,7 @@ class MarblesBoard(Matrix):
         self.set_marbles(blue=blue, red=red)
 
     def search_routes(self) -> int:
-        ''' 빨강이가 들어가야 한다아 '''
+        """빨강이가 들어가야 한다아"""
         visited = {(self._xy_blue, self._xy_red)}
         routes = {}
         for dir in Dir:
@@ -166,7 +167,7 @@ class MarblesBoard(Matrix):
             if (blue, red) not in visited:
                 routes.setdefault(dir.name, (blue, red))
                 visited.add((blue, red))
-        ## routes => {'U': ((-, -), (-, -)), 'D': ..., 'L': ..., 'R': ...}
+        # routes => {'U': ((-, -), (-, -)), 'D': ..., 'L': ..., 'R': ...}
 
         while routes:
             routes_next = {}
@@ -193,7 +194,7 @@ def gen_matrix(width, height):
         yield iter(sys.stdin.readline()[:width])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     height, width = map(int, sys.stdin.readline().split())
     board = MarblesBoard(gen_matrix(width, height))
     route = board.search_routes()
