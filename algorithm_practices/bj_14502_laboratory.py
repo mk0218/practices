@@ -56,31 +56,20 @@ class LabSimulator(Matrix):
             for x in range(self.width):
                 self._m[y][x] = self.initial[y][x]
 
-    def _dfs(self, x, y, next):
-        visited = set()
-        stack = [(x, y)]
-        while stack:
-            (x, y) = stack.pop()
-            if (x, y) in visited:
-                continue
-            visited.add((x, y))
-            stack += ((x+dx, y+dx) for (dx, dy) in next if self.is_valid(x+dx, y+dx))
-        return stack
-        
     def _spread(self):
 
-        def adjacent_and_empty(x, y):
+        def adjacent(x, y):
             indices = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
-            return (p for p in indices if (self.is_valid(*p) and self.get(*p) == self.EMPTY))
+            return (p for p in indices if self.is_valid(*p))
 
         for p in self.indices():
             if self.get(*p) != self.VIRUS:
                 continue
-            stack = list(adjacent_and_empty(*p))
+            stack = list(adjacent(*p))
             while stack:
                 p = stack.pop()
                 if self.get(*p) == self.EMPTY:
-                    stack += adjacent_and_empty(*p)
+                    stack += adjacent(*p)
                     self.set(*p, self.VIRUS)
 
     def _empty_indices(self):
@@ -89,19 +78,8 @@ class LabSimulator(Matrix):
                 if self.get(x, y) == self.EMPTY:
                     yield (x, y)
 
-    def simulate_wall(self): # TODO
+    def simulate_wall(self):
 
-        def seperate(x, y):    # 가상으로 세운 벽이 독립된 공간을 생성하는지 검사하는 함수. 얘도 DFS
-            directions = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
-            indices = ((x+i, y+j) for (i, j) in directions if self.is_valid(x+i, y+j))
-            ends = []
-            visited = set()
-            stack = [(x, y)]
-            while stack and len(ends) < 2:
-                p = stack.pop()
-                if p in visited:
-                    
-            
         def count_empty():
             empty = 0
             for p in self.indices():
@@ -110,33 +88,21 @@ class LabSimulator(Matrix):
             return empty
 
         max_safezone = 0
-        # for i, spots in enumerate(combinations(self._empty_indices(), 3)):
-        #     if i <= 10:    # 확인용, 나중에 enumerate와 함께 지울것임
-        #         print(spots)
         for spots in combinations(self._empty_indices(), 3):
             for p in spots:
                 self.set(*p, self.WALL)
             self._spread()
-            # max_safezone = max(max_safezone, count_empty())
-            # if (cnt := count_empty()) > max_safezone:
-            #     max_safezone = cnt
-            #     self.maxspots = spots
+            if (cnt := count_empty()) > max_safezone:
+                max_safezone = cnt
+                self.maxspots = spots
             self._initiate()
 
         return max_safezone
-
+            
 
 if __name__ == "__main__":
     readl = sys.stdin.readline
     h, w = map(int, readl().split())
     lab = [[int(c) for c in readl().split()] for _ in range(h)]
-    ans = LabSimulator(lab).simulate_wall()
-    print(ans)
-    # print(simul.maxspots)
-    # for p in simul.maxspots:
-    #     if simul.get(*p) == LabSimulator.EMPTY:
-    #         simul.set(*p, LabSimulator.WALL)
-    #     else:
-    #         print("EMPTY가 아닌뎁쇼?")
-    # simul._spread()
-    # print(simul)
+    simul = LabSimulator(lab)
+    print(simul.simulate_wall())
