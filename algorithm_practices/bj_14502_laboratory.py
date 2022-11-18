@@ -1,8 +1,6 @@
 '''
 BAEKJOON 14502번 문제
 https://www.acmicpc.net/problem/14502
-이게 다 오늘 고른 문제가 생각보다 넘 쉬워서 그래
-이제 이거 오늘안에 안풀린다
 [ 입력 ]
 연구소의 크기 N(height), M(width) 3이상 8이하
 N개의 줄에 지도의 모양 (0: 빈 칸, 1: 벽, 2: 바이러스)
@@ -10,8 +8,14 @@ N개의 줄에 지도의 모양 (0: 빈 칸, 1: 벽, 2: 바이러스)
 안전 영역의 최대 크기
 '''
 import sys
-from copy import deepcopy
-from itertools import combinations
+from copy import copy
+from enum import IntEnum
+from itertools import combinations, product
+
+
+class Directions:
+    eight = tuple(filter(lambda p: p != (0, 0), product((-1, 0, 1), repeat=2)))
+    four = tuple(filter(lambda p: abs(p[0]*p[1]) != 1, eight))
 
 
 class Matrix:
@@ -22,18 +26,24 @@ class Matrix:
         self.height = len(m)
 
     def get(self, x, y):
+        if x < 0 or y < 0:
+            raise IndexError
         return self._m[y][x]
 
     def set(self, x, y, v):
+        if x < 0 or y < 0:
+            raise IndexError
         self._m[y][x] = v
 
-    def is_valid(self, x, y):
-        if x < 0 or y < 0 or x >= self.width or y >= self.height:
-            return False
-        else:
-            return True
+    def setall(self, seq, v):
+        for p in seq:
+            self.set(*p, v)
+    
+    def valid(self, x, y):
+        return x >= 0 and x < self.width and y >= 0 and y < self.height
 
-    def indices(self):
+    def gen_indices(self):
+        """ An indices generator (in order) """
         for y in range(self.height):
             for x in range(self.width):
                 yield (x, y)
@@ -42,67 +52,94 @@ class Matrix:
         return "\n".join(" ".join(map(str, row)) for row in self._m)
 
 
-class LabSimulator(Matrix):
+class BS(IntEnum):
     EMPTY = 0
     WALL = 1
     VIRUS = 2
 
-    def __init__(self, m):
-        self.initial = deepcopy(m)
-        super().__init__(m)
+    def __repr__(self):
+        return str(self.name)
 
-    def _initiate(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                self._m[y][x] = self.initial[y][x]
+    def __str__(self):
+        return str(self.value)
+
+
+class LabSimulator(Matrix):
+    count = 0
+    def __init__(self, m):
+        super().__init__(m)
+        self.initial_state = {state: set() for state in BS}
+        for p in self.gen_indices():
+            self.initial_state[self.get(*p)].add(p)
+        self.empty = len(self.initial_state[BS.EMPTY])
+    
+    def _reset(self):
+        self.setall(self.initial_state[BS.EMPTY], BS.EMPTY)
+        self.empty = len(self.initial_state[BS.EMPTY])
 
     def _spread(self):
+        visited = set()
+    
+        def condition(p):
+            return p not in visited and self.get(*p) == BS.EMPTY
 
-        def adjacent(x, y):
-            indices = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
-            return (p for p in indices if self.is_valid(*p))
-
-        for p in self.indices():
-            if self.get(*p) != self.VIRUS:
-                continue
-            stack = list(adjacent(*p))
+        def next_blocks(x, y):
+            indices = ((x+dx, y+dy) for dx, dy in Directions.four)
+            return filter(condition, indices)
+            
+        for x, y in self.initial_state[BS.VIRUS]:
+            stack = [(x, y)]
             while stack:
-                p = stack.pop()
-                if self.get(*p) == self.EMPTY:
-                    stack += adjacent(*p)
-                    self.set(*p, self.VIRUS)
+                x, y = stack.pop()
+                if (x, y) in visited:
+                    continue
+                try:
+                    state = self.get(x, y)
+                except IndexError:
+                    continue
+                if state == BS.WALL:
+                    continue
+                visited.add((x, y))
+                stack += ((x+dx, y+dy) for dx, dy in Directions.four)
+                if state == BS.EMPTY:
+                    self.set(x, y, BS.VIRUS)
+                    self.empty -= 1
 
-    def _empty_indices(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                if self.get(x, y) == self.EMPTY:
-                    yield (x, y)
 
-    def simulate_wall(self):
 
-        def count_empty():
-            empty = 0
-            for p in self.indices():
-                if self.get(*p) == self.EMPTY:
-                    empty += 1
-            return empty
+    def _simulate(self, blocks):
+        self.setall(blocks, BS.WALL)
+        self.empty -= 3
+        self._spread()
+        count_empty = self.empty
+        self._reset()
+        return count_empty
+            
+    def run(self):
+
+        def alone(blocks):
+            for (x, y), (dx, dy) in product(blocks, Directions.eight):
+                try:
+                    value = self.get(x+dx, y+dy)
+                except:
+                    continue
+                if value != BS.EMPTY:
+                    return False
+            return True
 
         max_safezone = 0
-        for spots in combinations(self._empty_indices(), 3):
-            for p in spots:
-                self.set(*p, self.WALL)
-            self._spread()
-            if (cnt := count_empty()) > max_safezone:
-                max_safezone = cnt
-                self.maxspots = spots
-            self._initiate()
+        for blocks in combinations(self.initial_state[BS.EMPTY], 3):
+            if not alone(blocks):
+                max_safezone = max(max_safezone, self._simulate(blocks))
 
         return max_safezone
-            
+
 
 if __name__ == "__main__":
     readl = sys.stdin.readline
     h, w = map(int, readl().split())
-    lab = [[int(c) for c in readl().split()] for _ in range(h)]
-    simul = LabSimulator(lab)
-    print(simul.simulate_wall())
+    sim = LabSimulator([[int(c) for c in readl().split()] for _ in range(h)])
+
+    print(sim.run())
+
+                                          
