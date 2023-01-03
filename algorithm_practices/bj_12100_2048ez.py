@@ -124,14 +124,15 @@ class GameBoard(SquareMatrix):
 
 
 def solution(board):
-    """ A DFS-way solution using recursion """
+    """A DFS-way solution using recursion"""
+
     def game_simulate(board, count):
         if count == 5:
             return board.max()
         max_block = board.max()
         for dir in GameMove:
             if (next_state := board.next(dir)) != board:
-                max_block = max(max_block, game_simulate(next_state, count+1))
+                max_block = max(max_block, game_simulate(next_state, count + 1))
         return max_block
 
     initial_game = GameBoard(board)

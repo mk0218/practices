@@ -19,7 +19,6 @@ import sys
 
 
 class Set:
-
     def __init__(self):
         self.s = set()
 
@@ -35,7 +34,7 @@ class Set:
             print("1")
         else:
             print("0")
-    
+
     def toggle(self, x):
         if x in self.s:
             self.s.remove(x)

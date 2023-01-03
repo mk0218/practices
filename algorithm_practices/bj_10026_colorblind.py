@@ -1,4 +1,4 @@
-'''
+"""
 BAEKJOON 10026번 문제
 https://www.acmicpc.net/problem/10026
 [ 입력 ]
@@ -6,7 +6,7 @@ https://www.acmicpc.net/problem/10026
 둘째 줄부터 N개 줄에는 그림이 주어진다.
 [ 출력 ]
 적록색약이 아닌 사람이 봤을 때의 구역의 개수와 적록색약인 사람이 봤을 때의 구역의 수를 공백으로 구분해 출력한다.
-'''
+"""
 import sys
 from enum import Enum
 
@@ -33,14 +33,12 @@ class Picture:
 
     def change_color(self, src: Color, dst: Color):
         self._m[:] = [row.replace(src, dst) for row in self._m]
-            
-    
+
     def __str__(self):
         return "\n".join(self._m)
 
 
 class PictureUtils:
-
     @staticmethod
     def traverse_same_color(pic: Picture, x, y):
         directions = ((-1, 0), (1, 0), (0, -1), (0, 1))
@@ -53,10 +51,10 @@ class PictureUtils:
                 continue
             visited.add((x, y))
             for dx, dy in directions:
-                if pic.is_valid(x+dx, y+dy) and pic.get(x+dx, y+dy) == color:
-                    stack.append((x+dx, y+dy))
+                if pic.is_valid(x + dx, y + dy) and pic.get(x + dx, y + dy) == color:
+                    stack.append((x + dx, y + dy))
         return visited
-        
+
     @staticmethod
     def count_region(pic: Picture):
         indices = ((x, y) for y in range(pic.size) for x in range(pic.size))
@@ -75,4 +73,3 @@ if __name__ == "__main__":
     pic.change_color(Color.R, Color.G)
     ans2 = PictureUtils.count_region(pic)
     print(f"{ans1} {ans2}")
-    
