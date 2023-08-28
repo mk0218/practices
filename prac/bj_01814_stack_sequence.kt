@@ -1,50 +1,64 @@
 /* https://www.acmicpc.net/problem/1874 */
 
+
 fun main() {
     val n = readLine()!!.toInt()
-    sol(n)
+    println(sol(n))
 }
 
-fun sol(n: Int) {
-    val stack = Stack()
-    val numbers = generateSequence(1) { if (it < n) it + 1 else null }.iterator()
 
+fun sol(n: Int): String {
+    val stk = Stack(n)
+    var ops = StringBuilder()
+    var k = 1
     for (i in 1..n) {
-        val m = readLine()!!.toInt()
-
-        while (m > stack.last() ?: 0) {
-            stack.push(numbers.next())
+        val x = readLine()!!.toInt()
+        while (x > stk.top() ?: 0) {
+            ops.append("+\n")
+            stk.push(k++)
         }
-    
-        if (m == stack.last()) {
-            stack.pop()
+        if (x == stk.top()) {
+            ops.append("-\n")
+            stk.pop()
         } else {
-            println("NO")
-            return
+            return "NO"
+        }
+    }
+    return ops.toString()
+}
+
+
+class Stack(maxSize: Int) {
+    val maxSize = maxSize
+    val arr = IntArray(maxSize)
+    var size = 0
+    
+    fun push(x: Int): Boolean {
+        return if (size < maxSize) {
+            arr[size++] = x
+            true
+        } else {
+            false
         }
     }
 
-    for (c in stack.ops) {
-        println(c)
+    fun pop(): Int? {
+        return if (size > 0) {
+            arr[--size]
+        } else {
+            null
+        }
+    }
+
+    fun top(): Int? {
+        return if (size > 0) {
+            arr[size - 1]
+        } else {
+            null
+        }
+    }
+
+    fun empty(): Boolean {
+        return (size == 0)
     }
 }
-
-class Stack {
-    val arr = arrayListOf<Int>()
-    val ops = arrayListOf<Char>()
-
-    fun push(x: Int) {
-        arr.add(x)
-        ops.add('+')
-    }
-
-    fun pop() {
-        arr.removeLast()
-        ops.add('-')
-    }
-
-    fun last(): Int? {
-        return arr.lastOrNull()
-    }
-}
-
