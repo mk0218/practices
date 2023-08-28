@@ -2,28 +2,49 @@
 
 fun main() {
     val n = readLine()!!.toInt()
-    val numbers = MutableList<Int>(n) { n - it }
-    var stack = mutableListOf<Int>()
-    var ops = mutableListOf<Char>()
+    sol(n)
+}
+
+fun sol(n: Int) {
+    val stack = Stack()
+    val numbers = generateSequence(1) { if (it < n) it + 1 else null }.iterator()
 
     for (i in 1..n) {
         val m = readLine()!!.toInt()
 
-        if (stack.isNotEmpty() && m < stack.last()) {
+        while (m > stack.last() ?: 0) {
+            stack.push(numbers.next())
+        }
+    
+        if (m == stack.last()) {
+            stack.pop()
+        } else {
             println("NO")
             return
         }
-
-        while (stack.isNullOrEmpty() || m > stack.last()) {
-            stack.add(numbers.removeLastOrNull()!!)
-            ops.add('+')
-        }
-
-        stack.removeLastOrNull()!!
-        ops.add('-')
     }
 
-    for (c in ops) {
+    for (c in stack.ops) {
         println(c)
     }
 }
+
+class Stack {
+    val arr = arrayListOf<Int>()
+    val ops = arrayListOf<Char>()
+
+    fun push(x: Int) {
+        arr.add(x)
+        ops.add('+')
+    }
+
+    fun pop() {
+        arr.removeLast()
+        ops.add('-')
+    }
+
+    fun last(): Int? {
+        return arr.lastOrNull()
+    }
+}
+
