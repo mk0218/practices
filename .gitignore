@@ -6,3 +6,5 @@ replit.nix
 __pycache__
 *.pytest_cache/*
 *.o
+*.jar
+*/META-INF
