@@ -1,4 +1,4 @@
-'''
+"""
 BAEKJOON 14502번 문제
 https://www.acmicpc.net/problem/14502
 [ 입력 ]
@@ -6,20 +6,18 @@ https://www.acmicpc.net/problem/14502
 N개의 줄에 지도의 모양 (0: 빈 칸, 1: 벽, 2: 바이러스)
 [ 출력 ]
 안전 영역의 최대 크기
-'''
+"""
 import sys
-from copy import copy
 from enum import IntEnum
 from itertools import combinations, product
 
 
 class Directions:
     eight = tuple(filter(lambda p: p != (0, 0), product((-1, 0, 1), repeat=2)))
-    four = tuple(filter(lambda p: abs(p[0]*p[1]) != 1, eight))
+    four = tuple(filter(lambda p: abs(p[0] * p[1]) != 1, eight))
 
 
 class Matrix:
-
     def __init__(self, m):
         self._m = m
         self.width = len(m[0])
@@ -38,12 +36,12 @@ class Matrix:
     def setall(self, seq, v):
         for p in seq:
             self.set(*p, v)
-    
+
     def valid(self, x, y):
         return x >= 0 and x < self.width and y >= 0 and y < self.height
 
     def gen_indices(self):
-        """ An indices generator (in order) """
+        """An indices generator (in order)"""
         for y in range(self.height):
             for x in range(self.width):
                 yield (x, y)
@@ -66,27 +64,28 @@ class BS(IntEnum):
 
 class LabSimulator(Matrix):
     count = 0
+
     def __init__(self, m):
         super().__init__(m)
         self.initial_state = {state: set() for state in BS}
         for p in self.gen_indices():
             self.initial_state[self.get(*p)].add(p)
         self.empty = len(self.initial_state[BS.EMPTY])
-    
+
     def _reset(self):
         self.setall(self.initial_state[BS.EMPTY], BS.EMPTY)
         self.empty = len(self.initial_state[BS.EMPTY])
 
     def _spread(self):
         visited = set()
-    
+
         def condition(p):
             return p not in visited and self.get(*p) == BS.EMPTY
 
         def next_blocks(x, y):
-            indices = ((x+dx, y+dy) for dx, dy in Directions.four)
+            indices = ((x + dx, y + dy) for dx, dy in Directions.four)
             return filter(condition, indices)
-            
+
         for x, y in self.initial_state[BS.VIRUS]:
             stack = [(x, y)]
             while stack:
@@ -100,12 +99,10 @@ class LabSimulator(Matrix):
                 if state == BS.WALL:
                     continue
                 visited.add((x, y))
-                stack += ((x+dx, y+dy) for dx, dy in Directions.four)
+                stack += ((x + dx, y + dy) for dx, dy in Directions.four)
                 if state == BS.EMPTY:
                     self.set(x, y, BS.VIRUS)
                     self.empty -= 1
-
-
 
     def _simulate(self, blocks):
         self.setall(blocks, BS.WALL)
@@ -114,14 +111,13 @@ class LabSimulator(Matrix):
         count_empty = self.empty
         self._reset()
         return count_empty
-            
-    def run(self):
 
+    def run(self):
         def alone(blocks):
             for (x, y), (dx, dy) in product(blocks, Directions.eight):
                 try:
-                    value = self.get(x+dx, y+dy)
-                except:
+                    value = self.get(x + dx, y + dy)
+                except IndexError:
                     continue
                 if value != BS.EMPTY:
                     return False
@@ -141,5 +137,3 @@ if __name__ == "__main__":
     sim = LabSimulator([[int(c) for c in readl().split()] for _ in range(h)])
 
     print(sim.run())
-
-                                          

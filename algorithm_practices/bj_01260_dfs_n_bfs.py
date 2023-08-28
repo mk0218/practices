@@ -1,4 +1,4 @@
-'''
+"""
 BAEKJOON 1260번 문제
 https://www.acmicpc.net/problem/1260
 [ 입력 ]
@@ -7,18 +7,20 @@ M개의 줄에 간선이 연결하는 두 정점의 번호
 [ 출력 ]
 첫째 줄에는 DFS 탐색순서
 둘째 줄에는 BFS 탐색순서
-'''
+"""
 import sys
 
 
 def dfs(s, edges):
     visited = []
+
     def recursive_dfs(v):
         if v in visited:
             return
         visited.append(v)
         for w in edges[v]:
             recursive_dfs(w)
+
     recursive_dfs(s)
     return " ".join(map(str, visited))
 
@@ -37,7 +39,7 @@ def dfs_no_recursion(s, edges):
 
 def bfs(s, edges):
     visited = [s]
-    v, current = s, edges[s]
+    current = edges[s]
     while current:
         next = []
         for w in current:
@@ -53,10 +55,11 @@ def solve(s, edges):
     print(dfs_no_recursion(s, edges))
     print(bfs(s, edges))
 
+
 if __name__ == "__main__":
     readl = sys.stdin.readline
     n, m, v = map(int, readl().split())
-    edges = {i: [] for i in range(1, n+1)}
+    edges = {i: [] for i in range(1, n + 1)}
     for _ in range(m):
         u, w = map(int, readl().split())
         edges[u].append(w)

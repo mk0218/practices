@@ -1,4 +1,4 @@
-'''
+"""
 BAEKJOON 4673번 문제
 https://www.acmicpc.net/problem/4673
 이게 뭐꼬
@@ -7,15 +7,15 @@ d(n): n과 n의 각 자리수를 더하는 함수
 이 때 n을 d(n)의 생성자라고 하고 생성자가 없는 숫자를 셀프 넘버라고 한다
 [ 출력 ]
 10000보다 작거나 같은 셀프 넘버를 한 줄에 하나씩 출력하세요
-'''
-import sys
+"""
 
 
 def d(n):
     def add(n):
         if n == 0:
             return 0
-        return add(n//10) + n % 10
+        return add(n // 10) + n % 10
+
     return add(n) + n
 
 

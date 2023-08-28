@@ -1,4 +1,4 @@
-'''
+"""
 BAEKJOON 2606번 문제
 https://www.acmicpc.net/problem/2606
 [ 입력 ]
@@ -9,7 +9,7 @@ https://www.acmicpc.net/problem/2606
 [ 출력 ]
 1번 컴퓨터가 웜 바이러스에 걸렸을 때,
 1번 컴퓨터를 통해 웜 바이러스에 걸리게 되는 컴퓨터의 수를 첫째 줄에 출력한다.
-'''
+"""
 import sys
 
 
@@ -22,15 +22,15 @@ def solve(edges):
             continue
         visited.add(v)
         stack += edges[v]
-    print(len(visited)-1)
+    print(len(visited) - 1)
 
 
 if __name__ == "__main__":
     readl = sys.stdin.readline
     n = int(readl())
     m = int(readl())
-    edges = {i: [] for i in range(1, n+1)}
-    
+    edges = {i: [] for i in range(1, n + 1)}
+
     for _ in range(m):
         v, w = map(int, readl().split())
         edges[v].append(w)

@@ -1,4 +1,4 @@
-'''
+"""
 BAEKJOON 2178번 문제
 https://www.acmicpc.net/problem/2178
 1은 이동 가능, 0은 이동 불가능 칸
@@ -8,7 +8,7 @@ N(width) M(height)
 a M-length string consists of 0 and 1 for N lines
 [ 출력 ]
 지나야 하는 최소 칸의 수 (가능한 경우만 입력으로 주어짐)
-'''
+"""
 import sys
 
 
@@ -25,8 +25,8 @@ class Matrix:
         return "\n".join(self._m)
 
 
-def solve(height, width, maze):    # BFS
-    YES, NO = "1", "0"
+def solve(height, width, maze):  # BFS
+    NO = "0"
     move = ((-1, 0), (1, 0), (0, -1), (0, 1))
     maze = Matrix(maze)
     dst = (width - 1, height - 1)
@@ -46,7 +46,7 @@ def solve(height, width, maze):    # BFS
             if (x, y) == dst:
                 return level
             visited.add((x, y))
-            imonthenext_level |= {(x+dx, y+dy) for (dx, dy) in move}
+            imonthenext_level |= {(x + dx, y + dy) for (dx, dy) in move}
         current = imonthenext_level
         level += 1
 
