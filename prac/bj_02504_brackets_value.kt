@@ -9,7 +9,6 @@ fun sol(str: String): Int {
     val stack = Stack(30)
     var buffer = IntArray(30) { 0 }
     var i = 0
-    var prev = ' '
 
     for (c in str) {
         when (c) {
