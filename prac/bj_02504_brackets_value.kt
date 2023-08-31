@@ -27,12 +27,10 @@ fun sol(str: String): Int {
                     }
                     buffer[stack.size + 1] = 0
                 } else return 0
-
             }
             else -> stack.push(c)
         }
     }
-
     return buffer[0]
 }
 
