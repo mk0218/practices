@@ -23,7 +23,7 @@ class Person:
         if self.parent:
             yield self.parent
         yield from self.children
-    
+
     def __repr__(self):
         return f"#{self.n}: parent - {self.parent}, children - {self.children}"
 

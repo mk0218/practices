@@ -5,3 +5,8 @@ replit.nix
 *temp*
 __pycache__
 *.pytest_cache/*
+*.o
+*.jar
+*/META-INF
+*.out
+*.class

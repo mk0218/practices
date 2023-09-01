@@ -1,7 +1,7 @@
-'''
+"""
 BAEKJOON 14499번 문제
 https://www.acmicpc.net/problem/14499
-'''
+"""
 import sys
 from enum import IntEnum
 
@@ -14,7 +14,6 @@ class Dir(IntEnum):
 
 
 class Dice:
-
     def __init__(self):
         self._d = [0] * 6
         self._t = 1
@@ -27,7 +26,7 @@ class Dice:
 
     @property
     def b(self):
-        return (7 - self._t)
+        return 7 - self._t
 
     @property
     def n(self):
@@ -39,11 +38,11 @@ class Dice:
 
     @property
     def s(self):
-        return (7 - self._n)
+        return 7 - self._n
 
     @property
     def w(self):
-        return (7 - self._e)
+        return 7 - self._e
 
     def get_value(self, side_no):
         return self._d[side_no - 1]
@@ -74,7 +73,7 @@ def is_valid_move(n, m, x, y, dir: Dir):
     return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     readl = sys.stdin.readline
     n, m, y, x, k = map(int, readl().split())
     map_values = []
