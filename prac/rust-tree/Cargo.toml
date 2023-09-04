@@ -1,5 +1,5 @@
 [package]
-name = "rust-tree"
+name = "ranked_tree"
 version = "0.1.0"
 edition = "2021"
 
