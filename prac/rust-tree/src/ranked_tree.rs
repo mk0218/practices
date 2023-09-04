@@ -1,9 +1,9 @@
 use std::cell::RefCell;
+use std::cmp::Ordering;
 use std::collections::{ HashMap, VecDeque };
 use std::fmt;
 use std::rc::{ Rc, Weak };
 
-#[derive(Debug)]
 pub struct RankedTree(HashMap<usize, Rc<RefCell<N>>>, usize);
 
 pub enum RankedNode {
@@ -27,26 +27,53 @@ impl PartialEq for RankedNode {
     }
 }
 
+impl PartialOrd for RankedNode {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self.rank(), other.rank()) {
+            (Some(r1), Some(r2)) => r1.partial_cmp(&r2),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Debug for RankedTree {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "RankedTree (")?;
+        self.0.iter().fold(Ok(()), |_acc, n| {
+            let (id, reference) = n;
+            let rf = (*reference).borrow();
+            if let Some(rank) = &rf.rank() {
+                write!(f, " {}: (id: {}, rank: {}) ", id, &rf.id(), rank)
+            } else {
+                write!(f, " {}: (id: {}, rank: Root) ", id, &rf.id())
+            }
+        })?;
+        write!(f, ")")
+    }
+}
+
 impl fmt::Debug for RankedNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            N::Root { id, children } => {
-                f.debug_struct("RankedNode::Root")
-                 .field("id", id)
-                 .field("children", &(children.iter().fold(String::from("[ "), |acc, c| {
-                    acc + &(*c).borrow().id().to_string() + " "
-                 }) + "]"))
-                 .finish()
+            N::Root { children, .. } => {
+                write!(f, "Root ( ")?;
+                for (i, c) in children.iter().enumerate() {
+                    write!(f, "{:?}", (*c).borrow().id())?;
+                    if i != children.len() - 1 {
+                        write!(f, ", ")?;
+                    }
+                }
+                write!(f, " )")
             },
-            N::Node { id, rank, parent, children } => {
-                f.debug_struct("RankedNode::Node")
-                 .field("id", id)
-                 .field("rank", rank)
-                 .field("parent", &parent.upgrade().unwrap().borrow().id().to_string())
-                 .field("children", &(children.iter().fold(String::from("[ "), |acc, c| {
-                    acc + &(*c).borrow().id().to_string() + " "
-                 }) + "]"))
-                 .finish()
+            N::Node { id, rank, children, .. } => {
+                write!(f, "Node id: {} rank: {} ( ", id, rank)?;
+                for (i, c) in children.iter().enumerate() {
+                    write!(f, "{:?}", (*c).borrow().id())?;
+                    if i != children.len() - 1 {
+                        write!(f, ", ")?;
+                    }
+                }
+                write!(f, " )")
             },
         }
     }
@@ -57,10 +84,6 @@ impl RankedNode {
         match self {
             N::Root { id, .. } | N::Node { id, .. } => *id
         }
-    }
-    
-    fn id_from_reference(reference: &Rc<RefCell<N>>) -> usize {
-        (*reference).borrow().id()
     }
 
     fn rank(&self) -> Option<usize> {
@@ -77,43 +100,10 @@ impl RankedNode {
         }
     }
 
-    fn set_parent(&mut self, n: Rc<RefCell<N>>) -> Result<(), String> {
-        match self {
-            N::Root { .. } => Err(String::from("Root Node.")),
-            N::Node { parent, .. } => Ok(*parent = Rc::downgrade(&n)),
-        }
-    }
-
-    fn children(&self) -> &VecDeque<Rc<RefCell<N>>> {
-        match self {
-            N::Root { children, .. } |
-            N::Node { children, .. } => children
-        }
-    }
-
     fn children_mut(&mut self) -> &mut VecDeque<Rc<RefCell<N>>> {
         match self {
             N::Root { children, .. } |
             N::Node { children, .. } => children
-        }
-    }
-
-    fn child(&self, index: usize) -> Option<Rc<RefCell<N>>> {
-        self.children().get(index).map(|c| Rc::clone(c))
-    }
-
-    fn child_index_by_id(&self, child_id: usize) -> Option<usize> {
-        self.children().iter().position(|c| (*c).borrow().id() == child_id)
-    }
-
-    fn prev(&self) -> Option<Rc<RefCell<N>>> {
-        if let Some(parent) = self.parent().and_then(|p| p.upgrade()) {
-            match (*parent).borrow().child_index_by_id(self.id()).unwrap() {
-                0 => Some(Rc::clone(&parent)),
-                i => (*parent).borrow().child(i - 1),
-            }
-        } else {
-            None
         }
     }
 }
@@ -128,19 +118,21 @@ impl RankedTree {
         return RankedTree(nodes, 0);
     }
 
-    pub fn add_node(&mut self, rank: usize, prev: usize) {
-        let mut prev_node = self.node_ref(prev);
+    pub fn add_node(&mut self, prev: usize, rank: usize) {
+        let prev_node = self.node_ref(prev);
         let mut children: VecDeque<Rc<RefCell<N>>> = VecDeque::new();
-        let mut parent = if prev == 0 || (*prev_node).borrow().rank().unwrap() < rank {
+        let parent = if prev == 0 ||
+            (*prev_node).borrow().rank().unwrap() < rank {
             prev_node
         } else {
             (*prev_node).borrow().parent().unwrap().upgrade().unwrap()
         };
 
         let mut parent_borrowed = (*parent).borrow_mut();
-        let mut siblings = parent_borrowed.children_mut();
+        let siblings = parent_borrowed.children_mut();
 
-        while !siblings.is_empty() && (*siblings.get(0).unwrap()).borrow().rank().unwrap() > rank {
+        while !siblings.is_empty() &&
+              (*siblings.get(0).unwrap()).borrow().rank().unwrap() > rank {
             children.push_back(siblings.pop_front().unwrap());
         }
 
@@ -171,7 +163,8 @@ impl RankedTree {
 
 pub fn yamae_test() {
     let mut tree = RankedTree::new();
-    tree.add_node(1, 0);
-    tree.add_node(2, 1);
+    tree.add_node(0, 1);
+    tree.add_node(1, 1);
     println!("{:?}", &tree);
+    println!("{:?}", &tree.0.get(&0));
 }
