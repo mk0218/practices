@@ -1,8 +1,6 @@
-use std::cell::RefCell;
 use std::cmp::Ordering;
-use std::collections::{ HashMap, VecDeque };
+use std::collections::{ HashMap };
 use std::fmt;
-use std::rc::{ Rc, Weak };
 use crate::pointers_util::*;
 
 pub struct RankedTree(HashMap<usize, Child>, usize);

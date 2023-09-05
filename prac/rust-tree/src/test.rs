@@ -1,22 +1,10 @@
-use std::cell::RefCell;
-use std::collections::VecDeque;
-use std::rc::Rc;
-use crate::pointers_util::*;
-use crate::ranked_tree::*;
-
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
 #[cfg(test)]
-mod tests {
+mod tests_pointer_util {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    use crate::ranked_tree::*;
+    use crate::pointers_util::*;
     use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
 
     #[test]
     fn parent_upgrade() {

@@ -1,20 +1,32 @@
 
+/// Wrappers for Rc<RefCell<T>>
 use std::cell::{ Ref, RefCell, RefMut };
 use std::cmp::PartialEq;
 use std::collections::VecDeque;
 use std::collections::vec_deque::Iter;
-use std::ops::Deref;
+use std::fmt;
 use std::rc::{ Rc, Weak };
 use crate::ranked_tree::RankedNode;
 
 #[derive(Clone, Debug)]
 pub struct Parent_<T>(pub Weak<RefCell<T>>);
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Child_<T>(pub Rc<RefCell<T>>);
 
-#[derive(Debug)]
 pub struct Children_<T>(pub VecDeque<T>);
+
+impl<T: fmt::Debug> fmt::Debug for Child_<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", *self.borrow())
+    }
+}
+
+impl<T: fmt::Debug> fmt::Debug for Children_<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
+}
 
 impl<T> Parent_<T> {
     pub fn upgrade(&self) -> Child_<T> {
