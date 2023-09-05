@@ -3,19 +3,20 @@ use std::cmp::Ordering;
 use std::collections::{ HashMap, VecDeque };
 use std::fmt;
 use std::rc::{ Rc, Weak };
+use crate::pointers_util::*;
 
-pub struct RankedTree(HashMap<usize, Rc<RefCell<N>>>, usize);
+pub struct RankedTree(HashMap<usize, Child>, usize);
 
 pub enum RankedNode {
     Root {
         id: usize,
-        children: VecDeque<Rc<RefCell<N>>>,
+        children: Children,
     },
     Node {
         id: usize,
         rank: usize,
-        parent: Weak<RefCell<N>>,
-        children: VecDeque<Rc<RefCell<N>>>,
+        parent: Parent,
+        children: Children,
     },
 }
 
@@ -93,14 +94,14 @@ impl RankedNode {
         }
     }
 
-    fn parent(&self) -> Option<Weak<RefCell<N>>> {
+    fn parent(&self) -> Option<Parent> {
         match self {
             N::Root { .. } => None,
-            N::Node { parent, .. } => Some(Weak::clone(parent)),
+            N::Node { parent, .. } => Some(Parent::clone(&parent)),
         }
     }
 
-    fn children_mut(&mut self) -> &mut VecDeque<Rc<RefCell<N>>> {
+    fn children_mut(&mut self) -> &mut Children {
         match self {
             N::Root { children, .. } |
             N::Node { children, .. } => children
@@ -111,40 +112,43 @@ impl RankedNode {
 impl RankedTree {
     pub fn new() -> RankedTree {
         let mut nodes = HashMap::new();
-        nodes.insert(0, Rc::new(RefCell::new(N::Root {   
-            id: 0,
-            children: VecDeque::new(),
-        })));
+        let id: usize = 0;
+        nodes.insert(id, Child::new(N::Root {   
+            id: id,
+            children: Children::new(),
+        }));
         return RankedTree(nodes, 0);
     }
 
     pub fn add_node(&mut self, prev: usize, rank: usize) {
-        let prev_node = self.node_ref(prev);
-        let mut children: VecDeque<Rc<RefCell<N>>> = VecDeque::new();
-        let parent = if prev == 0 ||
-            (*prev_node).borrow().rank().unwrap() < rank {
-            prev_node
-        } else {
-            (*prev_node).borrow().parent().unwrap().upgrade().unwrap()
+        let parent = {
+            let prev_node = self.node_ref(prev);
+            if prev == 0 ||
+                prev_node.borrow().rank().unwrap() < rank {
+                prev_node
+            } else {
+                prev_node.borrow().parent().unwrap().upgrade()
+            }
         };
 
-        let mut parent_borrowed = (*parent).borrow_mut();
+        let mut children: Children = Children::new();
+        let mut parent_borrowed = parent.borrow_mut();
         let siblings = parent_borrowed.children_mut();
 
         while !siblings.is_empty() &&
-              (*siblings.get(0).unwrap()).borrow().rank().unwrap() > rank {
+              (siblings.get(0).unwrap()).borrow().rank().unwrap() > rank {
             children.push_back(siblings.pop_front().unwrap());
         }
 
         let id = self.next_id();
-        let node = Rc::new(RefCell::new(N::Node {
+        let node = Child::new(N::Node {
             id: id,
             rank: rank,
-            parent: Rc::downgrade(&parent),
+            parent: Child::downgrade(&parent),
             children: children,
-        }));
+        });
 
-        siblings.push_front(Rc::clone(&node));
+        siblings.push_front(Child::clone(&node));
         self.0.insert(id, node);
     }
 
@@ -153,9 +157,9 @@ impl RankedTree {
         return self.1;
     }
 
-    fn node_ref(&self, id: usize) -> Rc<RefCell<N>> {
+    fn node_ref(&self, id: usize) -> Child {
         match self.0.get(&id) {
-            Some(node) => Rc::clone(&node),
+            Some(node) => Child::clone(node),
             None => panic!("Invalid Node id: {}", &id),
         }
     }
